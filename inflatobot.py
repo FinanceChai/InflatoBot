@@ -1,6 +1,6 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from dotenv import load_dotenv
 import os
 
@@ -30,42 +30,41 @@ categories = {
 
 user_responses = {}
 
-def start(update: Update, context: CallbackContext) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [[InlineKeyboardButton(category, callback_data=category)] for category in categories.keys()]
     keyboard.append([InlineKeyboardButton('Confirm', callback_data='confirm'), InlineKeyboardButton('Cancel', callback_data='cancel')])
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Please select your expenses:', reply_markup=reply_markup)
+    await update.message.reply_text('Please select your expenses:', reply_markup=reply_markup)
 
-def button(update: Update, context: CallbackContext) -> None:
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    query.answer()
+    await query.answer()
 
     if query.data == 'confirm':
         response_summary = '\n'.join([f'{key}: {value} ({categories[key].index(value)+1}/5)' for key, value in user_responses.items()])
-        query.edit_message_text(text=f"Your responses:\n{response_summary}")
+        await query.edit_message_text(text=f"Your responses:\n{response_summary}")
         # Here you can add functionality to save the responses
     elif query.data == 'cancel':
         user_responses.clear()
-        query.edit_message_text(text="Selections cleared.")
+        await query.edit_message_text(text="Selections cleared.")
     elif query.data in categories.keys():
         category = query.data
         keyboard = [[InlineKeyboardButton(option, callback_data=f'{category}:{option}')] for option in categories[category]]
         keyboard.append([InlineKeyboardButton('Back', callback_data='back')])
         reply_markup = InlineKeyboardMarkup(keyboard)
-        query.edit_message_text(text=f'Select your expense for {category}:', reply_markup=reply_markup)
+        await query.edit_message_text(text=f'Select your expense for {category}:', reply_markup=reply_markup)
     elif ':' in query.data:
         category, option = query.data.split(':')
         user_responses[category] = option
-        query.edit_message_text(text=f'{category} set to {option}. You can continue selecting other expenses.')
+        await query.edit_message_text(text=f'{category} set to {option}. You can continue selecting other expenses.')
 
 def main() -> None:
-    updater = Updater(TOKEN)
+    application = Application.builder().token(TOKEN).build()
 
-    updater.dispatcher.add_handler(CommandHandler('start', start))
-    updater.dispatcher.add_handler(CallbackQueryHandler(button))
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(CallbackQueryHandler(button))
 
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 if __name__ == '__main__':
     main()
