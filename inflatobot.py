@@ -28,6 +28,15 @@ categories = {
     'Large Purchases': ['$50 or less', '$50-$150', '$150-$250', '$250-$350', '$350+']
 }
 
+# Define ranges in numerical format for calculations
+ranges = {
+    '$1000 or less': (0, 1000), '$1000-$1400': (1000, 1400), '$1400-$1500': (1400, 1500), '$1500-$1750': (1500, 1750), '$1750+': (1750, float('inf')),
+    '$100 or less': (0, 100), '$100-$300': (100, 300), '$300-$500': (300, 500), '$500-$700': (500, 700), '$700+': (700, float('inf')),
+    '$50 or less': (0, 50), '$50-$150': (50, 150), '$150-$250': (150, 250), '$250-$350': (250, 350), '$350+': (350, float('inf')),
+    '$50-$100': (50, 100), '$100-$150': (100, 150), '$150-$200': (150, 200), '$200+': (200, float('inf')),
+    '$10 or less': (0, 10), '$10-$50': (10, 50), '$50-$100': (50, 100), '$100-$150': (100, 150), '$150+': (150, float('inf'))
+}
+
 user_responses = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -42,7 +51,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     if query.data == 'confirm':
         response_summary = '\n'.join([f'{key}: {value} ({categories[key].index(value)+1}/5)' for key, value in user_responses.items()])
-        await query.edit_message_text(text=f"Your responses:\n{response_summary}")
+        total_min = sum(ranges[user_responses[key]][0] for key in user_responses)
+        total_max = sum(ranges[user_responses[key]][1] for key in user_responses)
+        total_summary = f"\n\nTOTAL: ${total_min} - ${total_max if total_max != float('inf') else 'and up'}"
+        await query.edit_message_text(text=f"Your responses:\n{response_summary}{total_summary}")
         # Here you can add functionality to save the responses
     elif query.data == 'cancel':
         user_responses.clear()
