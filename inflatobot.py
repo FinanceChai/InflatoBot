@@ -24,13 +24,13 @@ categories = {
 
 user_responses = {}
 
-def start(update: Update, _: CallbackContext) -> None:
+def start(update: Update, context: CallbackContext) -> None:
     keyboard = [[InlineKeyboardButton(category, callback_data=category)] for category in categories.keys()]
     keyboard.append([InlineKeyboardButton('Confirm', callback_data='confirm'), InlineKeyboardButton('Cancel', callback_data='cancel')])
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('Please select your expenses:', reply_markup=reply_markup)
 
-def button(update: Update, _: CallbackContext) -> None:
+def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     query.answer()
 
@@ -53,7 +53,7 @@ def button(update: Update, _: CallbackContext) -> None:
         query.edit_message_text(text=f'{category} set to {option}. You can continue selecting other expenses.')
 
 def main() -> None:
-    updater = Updater("YOUR_TELEGRAM_BOT_API_TOKEN", use_context=True)
+    updater = Updater("YOUR_TELEGRAM_BOT_API_TOKEN")
 
     updater.dispatcher.add_handler(CommandHandler('start', start))
     updater.dispatcher.add_handler(CallbackQueryHandler(button))
