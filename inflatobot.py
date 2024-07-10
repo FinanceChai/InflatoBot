@@ -47,6 +47,8 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     elif query.data == 'cancel':
         user_responses.clear()
         await query.edit_message_text(text="Selections cleared.")
+    elif query.data == 'back':
+        await send_category_selection(query)
     elif query.data in categories.keys():
         category = query.data
         keyboard = [[InlineKeyboardButton(option, callback_data=f'{category}:{option}')] for option in categories[category]]
@@ -56,7 +58,13 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     elif ':' in query.data:
         category, option = query.data.split(':')
         user_responses[category] = option
-        await query.edit_message_text(text=f'{category} set to {option}. You can continue selecting other expenses.')
+        await send_category_selection(query)
+
+async def send_category_selection(query):
+    keyboard = [[InlineKeyboardButton(category, callback_data=category)] for category in categories.keys()]
+    keyboard.append([InlineKeyboardButton('Confirm', callback_data='confirm'), InlineKeyboardButton('Cancel', callback_data='cancel')])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await query.edit_message_text(text='Please select your expenses:', reply_markup=reply_markup)
 
 def main() -> None:
     application = Application.builder().token(TOKEN).build()
