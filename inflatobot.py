@@ -1,6 +1,12 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -53,7 +59,7 @@ def button(update: Update, context: CallbackContext) -> None:
         query.edit_message_text(text=f'{category} set to {option}. You can continue selecting other expenses.')
 
 def main() -> None:
-    updater = Updater("YOUR_TELEGRAM_BOT_API_TOKEN")
+    updater = Updater(TOKEN)
 
     updater.dispatcher.add_handler(CommandHandler('start', start))
     updater.dispatcher.add_handler(CallbackQueryHandler(button))
